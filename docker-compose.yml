@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smartplate_app
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_USER=parking_user
+      - POSTGRES_PASSWORD=parking_pass
+      - POSTGRES_DB=parking_db
+    depends_on:
+      - postgres
+    networks:
+      - smartplate-network
+
+  postgres:
+    image: postgres:16
+    container_name: smartplate_postgres
+    environment:
+      - POSTGRES_USER=parking_user
+      - POSTGRES_PASSWORD=parking_pass
+      - POSTGRES_DB=parking_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - smartplate-network
+
+  nginx:
+    image: nginx:1.25
+    container_name: smartplate_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app
+    networks:
+      - smartplate-network
+
+volumes:
+  postgres_data:
+
+networks:
+  smartplate-network:
+    driver: bridge
